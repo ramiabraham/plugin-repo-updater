@@ -1,0 +1,199 @@
+#!/bin/bash
+#
+# For permissions errors, run:
+# chmod +x updater
+GETDIR=${PWD##*/}
+
+# A general-purpose ask function
+lemme_axe_you() {
+   while true; do
+
+		if [ "${2:-}" = "Y" ]; then
+		   prompt="Y/n"
+		   default=Y
+		elif [ "${2:-}" = "N" ]; then
+		   prompt="y/N"
+		   default=N
+		else
+		   prompt="y/n"
+		   default=
+		fi
+
+		# Ask the question
+		echo -n "$1 [$prompt] "
+
+		# Read answer
+		read REPLY </dev/tty
+
+		# Default?
+		if [ -z "$REPLY" ]; then
+		   REPLY=$default
+		fi
+
+		# Check if reply is valid
+		case "$REPLY" in
+		   Y*|y*) return 0 ;;
+		   N*|n*) return 1 ;;
+		esac
+
+   done
+}
+
+# Pre-flight. Make sure we're in the plugins dir
+is_plugins_dir() {
+	if [[ $GETDIR = "plugins" ]]; then
+		if lemme_axe_you "Update all AffiliateWP plugin repos?" N; then
+			# ask which branch
+		   echo "Cool. This script will skip the repo if it contains unstaged changes."
+		   echo "What would you like to do?" &&
+		   which_branch
+		else
+			# k bye
+		   echo "¯\_(ツ)_/¯ Ok bye."
+		   exit;
+		fi
+	else
+		echo -e "\033[33;31m This is not the plugins dir! \033[0m"
+		exit;
+	fi
+}
+
+which_branch() {
+	PS3='Please enter your choice: '
+	options=("master" "current HEAD" "Different branch for each" "Quit")
+	select opt in "${options[@]}"
+	do
+	   case $opt in
+	         "master")
+	         	update_master
+	            ;;
+	         "Current HEAD")
+	            update_current_head
+	            ;;
+	         "Different branch for each")
+	            different_b
+	            ;;
+	         "Quit")
+	            echo "Ok bye."
+	            break
+	            exit;
+	            ;;
+	         *) echo invalid option;;
+	   esac
+	done
+}
+
+update_master() {
+	echo -e "\033[33;34m Pulling master branches on all AffiliateWP plugins... \033[0m"
+
+	# For each AffiliateWP dir (any dir starting with affiliatewp or affiliate-wp),
+	# cd into that dir and update the repo.
+
+	# Check dirs starting with "affiliatewp"
+	nohyphen="affiliatewp"
+	for dir in "${nohyphen}"*; do
+
+		echo "Checking $dir..."
+		printf "\n"
+
+		# cd into plugin dir
+		cd "$dir"
+
+		# Check if there are unstaged changes in the repo
+		git diff --quiet; nochanges=$?
+
+		if [ $nochanges -eq 0 ]; then
+			# Huzzah, there are no changes
+			# Let's switch to master and update
+			#git checkout "master"
+			#git pull origin "master"
+			# Back to the plugins dir
+			cd ../
+		   echo -e "\033[33;32m $dir master branch updated... \033[0m"
+		   printf "\n"
+		else
+		   echo -e "\033[33;33m There are unstaged changes in $dir. Skipping... \033[0m"
+		   printf "\n"
+		fi
+	done
+
+	# Check dirs starting with "affiliate-wp"
+	hyphen="affiliatewp"
+	for dir in "${hyphen}"*; do
+
+		echo "Checking $dir..."
+		printf "\n"
+
+		# cd into plugin dir
+		cd "$dir"
+
+		# Check if there are unstaged changes in the git repo
+		git diff --quiet; nochanges=$?
+
+		if [ $nochanges -eq 0 ]; then
+			# Huzzah, there are no changes
+			# Let's switch to master and update
+			#git checkout "master"
+			#git pull origin "master"
+			# Back to the plugins dir
+			cd ../
+		   echo -e "\033[33;32m $dir master branch updated... \033[0m"
+		   printf "\n"
+		else
+		   echo -e "\033[33;33m There are unstaged changes in $dir. Skipping... \033[0m"
+		   printf "\n"
+		fi
+	done
+
+
+}
+
+update_current_head() {
+	echo "Updating current HEAD branches on all AffiliateWP plugins..."
+	current_head=git rev-parse --abbrev-ref HEAD
+	# nah nm
+	# git symbolic-ref HEAD | sed -e "s/^refs\/heads\///"
+	# git checkout $current_head
+	# TODO
+	echo "JK this isn't done yet."
+	exit;
+}
+
+different_b() {
+	echo "For each plugin, you'll need to specify the branch name to checkout and update."
+	printf "\n"
+
+	echo -e "\033[33;33m NOTE: Any plugin with unstaged changes will be skipped. \033[0m"
+
+	# TODO
+	echo "JK this isn't done yet."
+	exit;
+}
+
+welcome() {
+	echo -e "\033[33;36m
+	██████╗ ███████╗██████╗  ██████╗
+	██╔══██╗██╔════╝██╔══██╗██╔═══██╗
+	██████╔╝█████╗  ██████╔╝██║   ██║
+	██╔══██╗██╔══╝  ██╔═══╝ ██║   ██║
+	██║  ██║███████╗██║     ╚██████╔╝
+	╚═╝  ╚═╝╚══════╝╚═╝      ╚═════╝
+
+	██╗   ██╗██████╗ ██████╗  █████╗ ████████╗███████╗██████╗
+	██║   ██║██╔══██╗██╔══██╗██╔══██╗╚══██╔══╝██╔════╝██╔══██╗
+	██║   ██║██████╔╝██║  ██║███████║   ██║   █████╗  ██████╔╝
+	██║   ██║██╔═══╝ ██║  ██║██╔══██║   ██║   ██╔══╝  ██╔══██╗
+	╚██████╔╝██║     ██████╔╝██║  ██║   ██║   ███████╗██║  ██║
+	 ╚═════╝ ╚═╝     ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝
+	\033[0m"
+
+	printf "\n"
+	echo "Hi."
+}
+
+run() {
+	welcome
+	is_plugins_dir
+}
+
+run
