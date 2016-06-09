@@ -40,4 +40,5 @@ Presently, these patterns are: `affiliatewp` and `affiliate-wp`.
 - [x] Make sure there are no unstaged changes before attempting an update. Bail if not. (Using `git diff --quiet`)
 - [ ] Ability to update custom branches per repo
 - [ ] Save settings in a `.config` file _(or something)_
-- [ ] Completion of updating the current `HEAD` via `git rev-parse --abbrev-ref HEAD`
+- [ ] Completion of feature to update the current `HEAD` via `git rev-parse --abbrev-ref HEAD`
+- [ ] Abstract to a general-use script once saved settings are implemented, allowing for easier use by people that are _not_ my coworkers :)
