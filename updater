@@ -121,7 +121,7 @@ update_master() {
 	done
 
 	# Check dirs starting with "affiliate-wp"
-	hyphen="affiliatewp"
+	hyphen="affiliate-wp"
 	for dir in "${hyphen}"*; do
 
 		echo "Checking $dir..."
