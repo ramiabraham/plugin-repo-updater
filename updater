@@ -66,12 +66,15 @@ which_branch() {
 	   case $opt in
 	         "master")
 	         	update_master
+	         	break
 	            ;;
 	         "Current HEAD")
 	            update_current_head
+	         	break
 	            ;;
 	         "Different branch for each")
 	            different_b
+	         	break
 	            ;;
 	         "Quit")
 	            echo "Ok bye."
@@ -105,8 +108,8 @@ update_master() {
 		if [ $nochanges -eq 0 ]; then
 			# Huzzah, there are no changes
 			# Let's switch to master and update
-			#git checkout "master"
-			#git pull origin "master"
+			git checkout "master"
+			git pull origin "master" &&
 			# Back to the plugins dir
 			cd ../
 		   echo -e "\033[33;32m $dir master branch updated... \033[0m"
@@ -133,8 +136,8 @@ update_master() {
 		if [ $nochanges -eq 0 ]; then
 			# Huzzah, there are no changes
 			# Let's switch to master and update
-			#git checkout "master"
-			#git pull origin "master"
+			git checkout "master"
+			git pull origin "master" &&
 			# Back to the plugins dir
 			cd ../
 		   echo -e "\033[33;32m $dir master branch updated... \033[0m"
@@ -144,6 +147,33 @@ update_master() {
 		   printf "\n"
 		fi
 	done
+
+	# Now check AffiliateWP itself
+	coredir="affiliate-wp"
+
+		echo "Checking $coredir..."
+		printf "\n"
+
+		# cd into plugin dir
+		cd $coredir
+
+		# Check if there are unstaged changes in the git repo
+		git diff --quiet; nochanges=$?
+
+		if [ $nochanges -eq 0 ]; then
+			# Huzzah, there are no changes
+			# Let's switch to master and update
+			git checkout "master"
+			git pull origin "master" &&
+		   echo -e "\033[33;32m $coredir master branch updated... \033[0m"
+			# Back to the plugins dir
+			cd ../
+		   printf "\n"
+		else
+		   echo -e "\033[33;33m There are unstaged changes in $coredir. Skipping... \033[0m"
+		   printf "\n"
+		fi
+
 
 
 }
@@ -191,9 +221,18 @@ welcome() {
 	echo "Hi."
 }
 
+# All done.
+updates_complete() {
+	# Get day of the week
+	_dow="$(date +'%A')"
+	echo -e "\033[33;36m Updates Complete. Enjoy the rest of your $_dow! \033[0m"
+	exit;
+}
+
 run() {
 	welcome
 	is_plugins_dir
+	updates_complete
 }
 
 run
